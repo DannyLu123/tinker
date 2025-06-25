@@ -1,0 +1,24 @@
+Sun Jul 14 16:38:55 2024
+WARNING: mju_openResource: unknown file '/home/pi/Downloads/LocomotionWithNP3O-master/resources/tinymal/mujoco/tinymal.xml'
+
+Sun Jul 14 16:41:23 2024
+WARNING: mju_openResource: unknown file '/home/pi/Downloads/LocomotionWithNP3O-master/resources/tinymal/mujoco/tinymal.xml'
+
+Mon Jul 15 14:42:52 2024
+WARNING: mju_openResource: unknown file '/home/pi/Downloads/LocomotionWithNP3O-master/resources/tinymal/xml/tinymal-terrain.xml'
+
+Mon Jul 29 19:59:38 2024
+WARNING: mju_openResource: unknown file '/home/pi/Downloads/LocomotionWithNP3O-master/resources/tinymal/xml/world-terrain.xml'
+
+Fri Oct  4 10:34:48 2024
+WARNING: mju_openResource: unknown file '/home/pi/Downloads/LocomotionWithNP3O-masteroldx/resources/tinker/xml/world.xml'
+
+Thu May 15 13:28:09 2025
+WARNING: Nan, Inf or huge value in QACC at DOF 0. The simulation is unstable. Time = 0.7760.
+
+Thu May 15 13:28:51 2025
+WARNING: Nan, Inf or huge value in QACC at DOF 0. The simulation is unstable. Time = 0.7760.
+
+Thu May 15 13:29:26 2025
+WARNING: Nan, Inf or huge value in QACC at DOF 7. The simulation is unstable. Time = 0.6440.
+
