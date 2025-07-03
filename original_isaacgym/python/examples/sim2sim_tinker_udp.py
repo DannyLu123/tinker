@@ -318,7 +318,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Deployment script.')
-    parser.add_argument('--terrain', action='store_true', default='/home/rot/original_isaacgym/modelt2.pt')
+    parser.add_argument('--terrain', action='store_true', default='/home/rot/modelt.pt')
     args = parser.parse_args()
     
     class Sim2simCfg(TinkerConstraintHimRoughCfg):

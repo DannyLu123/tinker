@@ -269,7 +269,7 @@
           rgba="1 0.90588 0.91765 1" />
       </material>
     </visual>
-    <!--collision>
+    <collision>
       <origin
         xyz="0 0 0"
         rpy="0 0 0" />
@@ -277,7 +277,7 @@
         <mesh
           filename="../meshes/link_l_ankle.STL" />
       </geometry>
-    </collision-->
+    </collision>
     <collision>
       <origin
         xyz="0.02 0 -0.05"
@@ -569,7 +569,7 @@
           rgba="1 1 1 1" />
       </material>
     </visual>
-    <!--collision>
+    <collision>
       <origin
         xyz="0 0 0"
         rpy="0 0 0" />
@@ -577,7 +577,7 @@
         <mesh
           filename="../meshes/link_r_ankle.STL" />
       </geometry>
-    </collision-->
+    </collision>
     <collision>
       <origin
         xyz="0.02 0 -0.05"
@@ -606,4 +606,5 @@
       velocity="20" />
   </joint>
 </robot>
+
 

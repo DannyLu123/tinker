@@ -361,12 +361,12 @@ int main(int argc, char** argv) {
     int len;
     memset(&addr_serv, 0, sizeof(addr_serv));
     addr_serv.sin_family = AF_INET;
-#if 1
+#if 0
     string UDP_IP="127.0.0.1";
     int SERV_PORT= 8888;
 #else
     string UDP_IP="192.168.10.40";
-    int SERV_PORT= 8888;
+    int SERV_PORT= 8000;
 #endif
     addr_serv.sin_addr.s_addr = inet_addr(UDP_IP.c_str());
     addr_serv.sin_port = htons(SERV_PORT);

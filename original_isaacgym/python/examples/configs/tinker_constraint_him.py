@@ -107,8 +107,8 @@ class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
     class control( LeggedRobotCfg.control ):
         # PD Drive parameters:
         control_type = 'P'
-        stiffness = {'joint': 100.0}  # [N*m/rad]
-        damping = {'joint': 4.0}     # [N*m*s/rad]
+        stiffness = {'joint': 10.0}  # [N*m/rad]
+        damping = {'joint': 0.4}     # [N*m*s/rad]
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.25
         # decimation: Number of control action updates @ sim DT per policy DT
@@ -210,7 +210,7 @@ class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
         added_mass_range = [-1.0, 1.0]
         randomize_base_com = True
         added_com_range = [-0.05, 0.05]
-        push_robots = False
+        push_robots = True
         # push_interval_s = 15
         # max_push_vel_xy = 0.3
 

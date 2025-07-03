@@ -93,8 +93,8 @@ def play(args):
                                                       **policy_cfg_dict)
  
     model_dict = torch.load(os.path.join(ROOT_DIR, \
-    '/home/rot/original_isaacgym/python/examples/logs/rough_go2_constraint/Jun25_15-18-11_test_barlowtwins/model_500.pt'))#《---------------------调用的网络模型doghome
-
+    '/home/rot/original_isaacgym/python/examples/logs/rough_go2_constraint/Jul02_15-02-57_test_barlowtwins/model_2000.pt'))#《---------------------调用的网络模型doghome
+    #'/home/rot/model_3000.pt'))
     #if 1:#full 
     policy.load_state_dict(model_dict['model_state_dict'])
     policy.half()
