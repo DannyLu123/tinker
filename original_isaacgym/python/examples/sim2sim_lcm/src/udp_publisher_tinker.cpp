@@ -201,6 +201,16 @@ void RL_Tinymal_UDP::handleMessage(_msg_request request)//获取机器人反馈
             cout << "NaN detected in obs. Press any key to continue..." << endl;
             getchar(); // 等待键盘输入
         }
+        // std::cout << "\n初始关节位姿: ";
+        // for (int i = 0; i < 10; ++i) {
+        //     std::cout << request.q[i] << " ";
+        // }
+        // std::cout << "\n始末位姿偏差: ";
+        // for (int i = 0; i < 10; ++i) {
+        //     std::cout << (request.q[i] - init_pos[i]) << " ";
+        // }
+        // std::cout << std::endl;
+
 
         //-----------------------------网络输出滤波--------------------------------
         torch::Tensor action_blend_tensor = 0.8*action_tensor + 0.2*last_action;
@@ -326,6 +336,7 @@ int RL_Tinymal_UDP::init_policy(){
             float pos = 0;//(request->q[i]  - init_pos[i])* pos_scale;
             obs.push_back(pos);
             action[i]=init_pos[i];
+            // msg_response.q_exp[i] = init_pos[i];    
         }
         // vel q joint
         for (int i = 0; i < 10; ++i)
@@ -365,7 +376,7 @@ int main(int argc, char** argv) {
     string UDP_IP="127.0.0.1";
     int SERV_PORT= 8888;
 #else
-    string UDP_IP="192.168.10.40";
+    string UDP_IP="192.168.10.155";
     int SERV_PORT= 8000;
 #endif
     addr_serv.sin_addr.s_addr = inet_addr(UDP_IP.c_str());
@@ -463,8 +474,13 @@ int main(int argc, char** argv) {
             //     std::cerr << "无法打开文件 robot_data.txt 用于保存接收数据" << std::endl;
             // }
 
-            tinymal_rl.handleMessage(msg_request);
+            tinymal_rl.handleMessage(msg_request);}
+        else{
+            std::cerr << "UDP 丢包, 重试..." << std::endl;
+            continue;
         }
+
+        
         usleep(2*1000);
     }
     return 0;

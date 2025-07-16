@@ -28,6 +28,40 @@ def get_euler_xyz_tensor(quat):
     euler_xyz[euler_xyz > np.pi] -= 2 * np.pi
     return euler_xyz
 
+def copysign_new(a, b):
+
+    a = torch.tensor(a, device=b.device, dtype=torch.float)
+    a = a.expand_as(b)
+    return torch.abs(a) * torch.sign(b)
+
+def get_euler_rpy(q):
+    qx, qy, qz, qw = 0, 1, 2, 3
+    # roll (x-axis rotation)
+    sinr_cosp = 2.0 * (q[..., qw] * q[..., qx] + q[..., qy] * q[..., qz])
+    cosr_cosp = q[..., qw] * q[..., qw] - q[..., qx] * \
+        q[..., qx] - q[..., qy] * q[..., qy] + q[..., qz] * q[..., qz]
+    roll = torch.atan2(sinr_cosp, cosr_cosp)
+
+    # pitch (y-axis rotation)
+    sinp = 2.0 * (q[..., qw] * q[..., qy] - q[..., qz] * q[..., qx])
+    pitch = torch.where(torch.abs(sinp) >= 1, copysign_new(
+        np.pi / 2.0, sinp), torch.asin(sinp))
+
+    # yaw (z-axis rotation)
+    siny_cosp = 2.0 * (q[..., qw] * q[..., qz] + q[..., qx] * q[..., qy])
+    cosy_cosp = q[..., qw] * q[..., qw] + q[..., qx] * \
+        q[..., qx] - q[..., qy] * q[..., qy] - q[..., qz] * q[..., qz]
+    yaw = torch.atan2(siny_cosp, cosy_cosp)
+
+    return roll % (2*np.pi), pitch % (2*np.pi), yaw % (2*np.pi)
+
+def get_euler_rpy_tensor(quat):
+    r, p, w = get_euler_rpy(quat)
+    # stack r, p, w in dim1
+    euler_xyz = torch.stack((r, p, w), dim=-1)
+    euler_xyz[euler_xyz > np.pi] -= 2 * np.pi
+    return euler_xyz
+
 class LeggedRobot(BaseTask):
     def __init__(self, cfg: LeggedRobotCfg, sim_params, physics_engine, sim_device, headless):
         """ Parses the provided config file,
@@ -470,6 +504,9 @@ class LeggedRobot(BaseTask):
         # prepare quantities
         self.base_quat[:] = self.root_states[:, 3:7]
         self.base_euler_xyz = get_euler_xyz_tensor(self.base_quat)
+        self.feet_quat = self.rigid_body_states[:, self.feet_indices, 3:7]
+        self.feet_euler_xyz = get_euler_rpy_tensor(self.feet_quat)
+
         self.base_lin_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states[:, 7:10])
         self.base_ang_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states[:, 10:13])
         self.projected_gravity[:] = quat_rotate_inverse(self.base_quat, self.gravity_vec)
@@ -1596,6 +1633,7 @@ class LeggedRobot(BaseTask):
         #rew_airTime = -1*torch.where(self.feet_air_time >self.cfg.rewards.cycle_time)
         rew_airTime *= torch.norm(self.commands[:, :2], dim=1) > self.cfg.rewards.command_dead #no reward for zero command
         self.feet_air_time *= ~contact_filt
+        cycle_time = self.cfg.rewards.cycle_time / (1 + torch.norm(self.commands[:, :2], dim=1))
         return rew_airTime
 
     def _reward_foot_clearance(self):
@@ -1613,6 +1651,7 @@ class LeggedRobot(BaseTask):
         height_error = torch.square(footpos_in_body_frame[:, :, 2] - self.cfg.rewards.clearance_height_target).view(self.num_envs, -1)
         foot_leteral_vel = torch.sqrt(torch.sum(torch.square(footvel_in_body_frame[:, :, :2]), dim=2)).view(self.num_envs, -1)
         return torch.sum(height_error * foot_leteral_vel, dim=1)*(torch.norm(self.commands[:, :2], dim=1) > self.cfg.rewards.command_dead)
+
 
     def _reward_foot_clearance1(self):#n coord
         base_height = self._get_base_heights()
@@ -1681,7 +1720,40 @@ class LeggedRobot(BaseTask):
         contact_num= torch.sum(contact)
         reward = torch.where(contact_num <=2, 0, 1)
         return reward* (torch.norm(self.commands[:, :2], dim=1) > self.cfg.rewards.command_dead)
-    
+
+    def _reward_ankle_pos(self):
+        contact = self.contact_forces[:, self.feet_indices, 2] < self.cfg.rewards.touch_thr #swing phase
+        vel_x=self.cfg.commands.ranges.lin_vel_x[1]
+        temp_l=torch.abs(self.dof_pos[:, 2]+ self.dof_pos[:, 3] + self.dof_pos[:, 4])*contact[:,0]
+        temp_r=torch.abs(self.dof_pos[:, 7]+ self.dof_pos[:, 8] + self.dof_pos[:, 9])*contact[:,1]
+        temp=temp_l+temp_r
+        reward=torch.exp(-torch.square(temp)*3)
+        return  reward* (torch.norm(self.commands[:, :3], dim=1) > self.cfg.rewards.command_dead)
+
+    def _reward_feet_rotation(self):
+        feet_euler_xyz = self.feet_euler_xyz
+        #rotation = torch.sum(torch.square(feet_euler_xyz[:,:,:2]),dim=[1,2])
+        rotation = torch.sum(torch.square(feet_euler_xyz[:,:,1]),dim=1)
+        r = torch.exp(-rotation*15)
+
+    def _reward_feet_rotation1(self):
+        feet_euler_xyz = self.feet_euler_xyz
+        #rotation = torch.sum(torch.square(feet_euler_xyz[:,:,:2]),dim=[1,2])
+        nag_contacts = self.contact_forces[:, self.feet_indices[0], 2] < self.cfg.rewards.touch_thr
+        # rotation = (torch.square(feet_euler_xyz[:,0,1]))
+        # r = torch.exp(-rotation*15)*nag_contacts
+        rotation = torch.sum(torch.square(self.feet_euler_xyz[:, 0, :2]), dim=1)  # 包含 roll 和 pitch
+        r = torch.exp(-rotation * 15) * nag_contacts
+        return r
+
+    def _reward_feet_rotation2(self):
+        feet_euler_xyz = self.feet_euler_xyz
+        #rotation = torch.sum(torch.square(feet_euler_xyz[:,:,:2]),dim=[1,2])
+        nag_contacts = self.contact_forces[:, self.feet_indices[1], 2] < self.cfg.rewards.touch_thr
+        rotation = (torch.square(feet_euler_xyz[:,1,1]))
+        r = torch.exp(-rotation*15)*nag_contacts
+        return r
+
     def _reward_hip_pos(self):
         vel_y=self.cfg.commands.ranges.lin_vel_y[1]
         temp=self.dof_pos[:, [0,1,4,  5,6,9]] - self.default_dof_pos[:, [0,1,4,  5,6,9]]
@@ -1915,8 +1987,11 @@ class LeggedRobot(BaseTask):
         return torch.sum(height_error * foot_leteral_vel, dim=1)
     
     def _cost_trot_contact(self):#相序约束
-        contact_filt = 1.*self.contact_filt
-        pattern_match1 = torch.mean(torch.abs(contact_filt - self.trot_pattern1),dim=-1)
-        pattern_match2 = torch.mean(torch.abs(contact_filt - self.trot_pattern2),dim=-1)
-        pattern_match_flag = 1.*(pattern_match1*pattern_match2 > 0)
-        return pattern_match_flag*(torch.norm(self.commands[:, :2], dim=1) > self.cfg.rewards.command_dead)
+        # contact_filt = 1.*self.contact_filt
+        # pattern_match1 = torch.mean(torch.abs(contact_filt - self.trot_pattern1),dim=-1)
+        # pattern_match2 = torch.mean(torch.abs(contact_filt - self.trot_pattern2),dim=-1)
+        # pattern_match_flag = 1.*(pattern_match1*pattern_match2 > 0)
+        left_contact = self.contact_forces[:, self.feet_indices[0], 2] > self.cfg.rewards.touch_thr
+        right_contact = self.contact_forces[:, self.feet_indices[1], 2] > self.cfg.rewards.touch_thr
+        pattern_match_flag = left_contact ^ right_contact  # 异或，确保一脚支撑一脚摆动
+        return 1. * (~pattern_match_flag) * (torch.norm(self.commands[:, :2], dim=1) > self.cfg.rewards.command_dead)

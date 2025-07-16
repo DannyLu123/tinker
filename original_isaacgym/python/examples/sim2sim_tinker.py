@@ -12,13 +12,14 @@ from scipy.spatial.transform import Rotation as R
 from global_config import ROOT_DIR
 from configs.tinker_constraint_him import TinkerConstraintHimRoughCfg
 import torch
+import random
 
 #default_dof_pos=[-0.16,0.68,1.3 ,0.16,0.68,1.3, -0.16,0.68,1.3, 0.16,0.68,1.3]#默认角度需要与isacc一致
 default_dof_pos = [0.0,-0.07,0.56,-1.12,0.57,  0.0,0.07,0.56,-1.12,0.57]
 #default_dof_pos = [0.0,0.0,0.0,0.0,0.0,  0.0,0.0,0.0,0.0,0.0]
 
 class cmd:
-    vx = 0
+    vx = 0.0
     vy = 0.0
     dyaw = 0.0
 
@@ -149,7 +150,7 @@ def run_mujoco(policy, cfg):
             print(f"重力向量: {gvec}")
             print("-" * 50)
 
-
+        
         if 1:
             # 1000hz ->50hz
             if count_lowlevel % cfg.sim_config.decimation == 0:
@@ -159,9 +160,14 @@ def run_mujoco(policy, cfg):
                 eu_ang = quaternion_to_euler_array(quat)
                 eu_ang[eu_ang > math.pi] -= 2 * math.pi
 
-                cmd.vx=0
-                cmd.vy=0.0
-                cmd.dyaw= -0.0
+                # cmd.vx=0.0
+                # cmd.vy=0.0
+                # cmd.dyaw= -0.0
+                if step % 300 == 0:
+                    cmd.vx = random.uniform(cfg.commands.ranges.lin_vel_x[0], cfg.commands.ranges.lin_vel_x[1])
+                    cmd.vy = random.uniform(cfg.commands.ranges.lin_vel_y[0], cfg.commands.ranges.lin_vel_y[1])
+                    cmd.dyaw = random.uniform(cfg.commands.ranges.ang_vel_yaw[0], cfg.commands.ranges.ang_vel_yaw[1])
+                    print(f"commands update: vx={cmd.vx}, vy={cmd.vy}, dyaw={cmd.dyaw}")
                 #sensor->lcm
                 #单次观测
                 obs[0, 0] = omega[0] *cfg.normalization.obs_scales.ang_vel
@@ -319,11 +325,20 @@ if __name__ == '__main__':
             decimation = 20 # 100Hz
 
         class robot_config:
-            kp_all = 8.0
-            kd_all = 0.2
+            # kp_all = 8.0
+            # kd_all = 0.2
+            kp_all = 50.0
+            kd_all = 0.5
             kps = np.array([kp_all, kp_all, kp_all, kp_all, kp_all, kp_all, kp_all, kp_all, kp_all, kp_all], dtype=np.double)#PD和isacc内部一致
             kds = np.array([kd_all, kd_all, kd_all, kd_all, kd_all, kd_all, kd_all, kd_all, kd_all, kd_all], dtype=np.double)
             tau_limit = 12. * np.ones(10, dtype=np.double)#nm
+
+        class commands:
+            class ranges:
+                lin_vel_x = [-0., 0.5]
+                lin_vel_y = [-0., 0.5]
+                ang_vel_yaw = [-0, 1.0]
+
 
     policy = torch.load(args.load_model)# 有一个可能得原因是这个 pt文件里只有权重，而没有网络结构。 所以 只能用 torch.load去加载，不能用torch.jit.load
     #policy = torch.torch.jit.load("/home/pi/Downloads/LocomotionWithNP3O-master/model_jit.pt")# 有一个可能得原因是这个 pt文件里只有权重，而没有网络结构。 所以 只能用 torch.load去加载，不能用torch.jit.load

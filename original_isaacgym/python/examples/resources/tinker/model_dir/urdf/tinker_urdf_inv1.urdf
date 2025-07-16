@@ -65,7 +65,7 @@
           rgba="0.89804 0.91765 0.92941 1" />
       </material>
     </visual>
-    <!--collision>
+    <!-- <collision>
       <origin
         xyz="0 0 0"
         rpy="0 0 0" />
@@ -73,7 +73,7 @@
         <mesh
           filename="../meshes/link_l_yaw.STL" />
       </geometry>
-    </collision-->
+    </collision> -->
   </link>
   <joint
     name="joint_l_yaw"
@@ -116,7 +116,7 @@
           rgba="0.89804 0.91765 0.92941 1" />
       </material>
     </visual>
-    <!--collision>
+    <!-- <collision>
       <origin
         xyz="0 0 0"
         rpy="0 0 0" />
@@ -124,7 +124,7 @@
         <mesh
           filename="../meshes/link_l_roll.STL" />
       </geometry>
-    </collision-->
+    </collision> -->
   </link>
   <joint
     name="joint_l_roll"
@@ -278,14 +278,14 @@
           filename="../meshes/link_l_ankle.STL" />
       </geometry>
     </collision>
-    <collision>
+    <!-- <collision>
       <origin
         xyz="0.02 0 -0.05"
         rpy="0 1.57 0" />
       <geometry>
         <cylinder length="0.13" radius="0.01"/>
       </geometry>
-    </collision>
+    </collision> -->
   </link>
   <joint
     name="joint_l_ankle"
@@ -305,44 +305,7 @@
       effort="12"
       velocity="20" />
   </joint>
-  <!--link
-    name="link_l_foot">
-     <inertial>
-      <origin
-        xyz="0.020853 0.0048146 -0.030186"
-        rpy="0 0 0" />
-      <mass
-        value="0.01" />
-      <inertia
-        ixx="0.00001"
-        ixy="0.0"
-        ixz="0.0"
-        iyy="0.00001"
-        iyz="-0.0"
-        izz="0.00001" />
-    </inertial>
-    <collision>
-      <origin
-        xyz="0.015 0 0"
-        rpy="0 1.54 0" />
-      <geometry>
-        <cylinder length="0.15" radius="0.01"/>
-      </geometry>
-    </collision>
-  </link>
-  <joint
-    name="l_foot_joint"
-    type="fixed" dont_collapse="true">
-    <origin
-      xyz="0 0 -0.05"
-      rpy="0 0 0" />
-    <parent
-      link="link_l_ankle" />
-    <child
-      link="link_l_foot" />
-    <axis
-      xyz="0 0 0" />
-  </joint-->
+ 
 
 
   <link
@@ -367,7 +330,7 @@
           rgba="0.89804 0.91765 0.92941 1" />
       </material>
     </visual>
-    <!--collision>
+    <!-- <collision>
       <origin
         xyz="0 0 0"
         rpy="0 0 0" />
@@ -375,7 +338,7 @@
         <mesh
           filename="../meshes/link_r_yaw.STL" />
       </geometry>
-    </collision-->
+    </collision> -->
   </link>
   <joint
     name="joint_r_yaw"
@@ -418,7 +381,7 @@
           rgba="0.89804 0.91765 0.92941 1" />
       </material>
     </visual>
-    <!--collision>
+    <!-- <collision>
       <origin
         xyz="0 0 0"
         rpy="0 0 0" />
@@ -426,7 +389,7 @@
         <mesh
           filename="../meshes/link_r_roll.STL" />
       </geometry>
-    </collision-->
+    </collision> -->
   </link>
   <joint
     name="joint_r_roll"
@@ -578,14 +541,14 @@
           filename="../meshes/link_r_ankle.STL" />
       </geometry>
     </collision>
-    <collision>
+    <!-- <collision>
       <origin
         xyz="0.02 0 -0.05"
         rpy="0 1.57 0" />
       <geometry>
         <cylinder length="0.13" radius="0.015"/>
       </geometry>
-    </collision>
+    </collision> -->
   </link>
   <joint
     name="joint_r_ankle"

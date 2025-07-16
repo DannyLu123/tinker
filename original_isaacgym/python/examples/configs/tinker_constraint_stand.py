@@ -29,8 +29,8 @@
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
 from configs.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
-
-class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
+from global_config import MAX_ITER,SAVE_DIV
+class TinkerConstraintStandRoughCfg( LeggedRobotCfg ):
     class env(LeggedRobotCfg.env):
         num_envs = 1024  #1024 
 
@@ -73,32 +73,20 @@ class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
             'joint_r_ankle': 0.57,   # [rad] 
         }
 
-        # default_joint_angles = { # = target angles [rad] when action = 0.0
-        #     'joint_l_yaw':   0.0,   # [rad]
-        #     'joint_l_roll':  -0.07,   # [rad]
-        #     'joint_l_pitch': 0.628,   # [rad]
-        #     'joint_l_knee':  -1.16,   # [rad]
-        #     'joint_l_ankle': 0.565,   # [rad]
 
-        #     'joint_r_yaw':   0.0,   # [rad]
-        #     'joint_r_roll':  0.07,   # [rad]
-        #     'joint_r_pitch': 0.628,   # [rad]
-        #     'joint_r_knee':  -1.16,   # [rad]
-        #     'joint_r_ankle': 0.565,   # [rad] 
-        # }
 
         default_joint_angles_st = { # = target angles [rad] when action = 0.0
             'joint_l_yaw':   0.0,   # [rad]
-            'joint_l_roll':  -0.0,   # [rad]
-            'joint_l_pitch': 0.61,   # [rad]
-            'joint_l_knee':  -0.95,   # [rad]
-            'joint_l_ankle': 0.32,   # [rad]
+            'joint_l_roll':  -0.07,   # [rad]
+            'joint_l_pitch': -0.56,   # [rad]
+            'joint_l_knee':  1.12,   # [rad]
+            'joint_l_ankle': -0.57,   # [rad]
 
             'joint_r_yaw':   0.0,   # [rad]
-            'joint_r_roll':  0.0,   # [rad]
-            'joint_r_pitch': 0.61,   # [rad]
-            'joint_r_knee':  -0.95,   # [rad]
-            'joint_r_ankle': 0.32,   # [rad] 
+            'joint_r_roll':  0.07,   # [rad]
+            'joint_r_pitch': 0.56,   # [rad]
+            'joint_r_knee':  -1.12,   # [rad]
+            'joint_r_ankle': 0.57,   # [rad]  
         }
     # stiffness = {'leg_roll': 200.0, 'leg_pitch': 350.0, 'leg_yaw': 200.0,
     #                 'knee': 350.0, 'ankle': 15}
@@ -107,8 +95,13 @@ class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
     class control( LeggedRobotCfg.control ):
         # PD Drive parameters:
         control_type = 'P'
-        stiffness = {'joint': 10.0}  # [N*m/rad]
-        damping = {'joint': 0.4}     # [N*m*s/rad]
+        # stiffness = {'joint': 10.0}  # [N*m/rad]
+        # damping = {'joint': 0.4}     # [N*m*s/rad]
+        stiffness = {'joint_l_yaw': 13, 'joint_l_roll': 15,'joint_l_pitch': 15, 'joint_l_knee':15, 'joint_l_ankle':13,
+                     'joint_r_yaw': 13, 'joint_r_roll': 15,'joint_r_pitch': 15, 'joint_r_knee':15, 'joint_r_ankle':13}
+        damping = {'joint_l_yaw': 0.3, 'joint_l_roll': 0.65,'joint_l_pitch': 0.65, 'joint_l_knee':0.65, 'joint_l_ankle':0.3,
+                   'joint_r_yaw': 0.3, 'joint_r_roll': 0.65,'joint_r_pitch': 0.65, 'joint_r_knee':0.65, 'joint_r_ankle':0.3}
+        
         # action scale: target angle = actionScale * action + defaultAngle
         action_scale = 0.25
         # decimation: Number of control action updates @ sim DT per policy DT
@@ -124,7 +117,7 @@ class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
         curriculum = False
         max_curriculum = 1.
         num_commands = 5  # default: lin_vel_x, lin_vel_y, ang_vel_yaw, heading (in heading mode ang_vel_yaw is recomputed from heading error)
-        resampling_time = 10.  # time before command are changed[s]W
+        resampling_time = 12  # time before command are changed[s]W
         heading_command = True  # if true: compute ang vel command from heading error
         global_reference = False
 
@@ -136,16 +129,16 @@ class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
             height = [0.12 , 0.2] # m
 
     class asset( LeggedRobotCfg.asset ):
-        #file = '{ROOT_DIR}/resources/tinker/urdf/tinker_urdf.urdf'
-        file = '{ROOT_DIR}/resources/tinker/urdf/tinker_urdf_inv.urdf'
+        file = '{ROOT_DIR}/resources/tinker/urdf/tinker_urdf_inv1.urdf'
+    
         foot_name = "ankle" #URDF需要具有foot的link
         name = "tinker"
-        penalize_contacts_on = ["pitch", "ankle"]
-        terminate_after_contacts_on = ["base_link","pitch"]
+        penalize_contacts_on = ["ankle"]
+        terminate_after_contacts_on = ["base_link"]
         self_collisions = 1 # 1 to disable, 0 to enable...bitwise filter 自己碰撞会抽搐,同时足底力计算也不准确
         flip_visual_attachments = False #
   
-    class rewards( LeggedRobotCfg.rewards ):#1500次左右走的很好
+    class rewards( LeggedRobotCfg.rewards ):
         soft_dof_pos_limit = 0.9
         base_height_target = 0.29
         clearance_height_target = -0.20#相对站立高度 不能和高度差距太大
@@ -203,7 +196,7 @@ class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
 
 
     class domain_rand( LeggedRobotCfg.domain_rand):
-        randomize_friction = True
+        randomize_friction = True 
         friction_range = [0.1, 2.75]
         randomize_restitution = True
         restitution_range = [0.0,1.0]
@@ -229,8 +222,9 @@ class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
         kd_range = [0.8,1.2]
 
         randomize_lag_timesteps = True
-        lag_timesteps = 6
-
+        lag_timesteps = 10
+    
+        #old mass randomize new------------------------------
         randomize_all_mass = True
         rd_mass_range = [0.9, 1.1]
 
@@ -265,7 +259,8 @@ class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
         randomize_imu_lag_timesteps = True
         randomize_imu_lag_timesteps_perstep = False
         imu_lag_timesteps_range = [0, 1]
-    
+        
+
     class depth( LeggedRobotCfg.depth):
         use_camera = False
         camera_num_envs = 192
@@ -317,14 +312,14 @@ class TinkerConstraintHimRoughCfg( LeggedRobotCfg ):
             #trot_contact = 1
  
     class cost:
-        num_costs = 4 #需要同步修改 policy
+        num_costs = 5 #需要同步修改 policy
     
     class terrain(LeggedRobotCfg.terrain):
         mesh_type = 'plane'  # "heightfield" # none, plane, heightfield or trimesh
         measure_heights = True
         include_act_obs_pair_buf = False
 
-class TinkerConstraintHimRoughCfgPPO( LeggedRobotCfgPPO ):
+class TinkerConstraintStandRoughCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
         # entropy_coef = 0.01
         # learning_rate = 1.e-3
@@ -370,7 +365,7 @@ class TinkerConstraintHimRoughCfgPPO( LeggedRobotCfgPPO ):
         rnn_num_layers = 1
 
         tanh_encoder_output = False
-        num_costs = 4 #需要同步修改--------------------------------------cost
+        num_costs = 5 #需要同步修改--------------------------------------cost
 
         teacher_act = False
         imi_flag = False
@@ -381,11 +376,11 @@ class TinkerConstraintHimRoughCfgPPO( LeggedRobotCfgPPO ):
         policy_class_name = 'ActorCriticMixedBarlowTwins'
         runner_class_name = 'OnConstraintPolicyRunner'
         algorithm_class_name = 'NP3O'
-        max_iterations = 2000 #最大训练回合
-        save_interval = 500 #保存周期
+        max_iterations = MAX_ITER #最大训练回合
+        save_interval = SAVE_DIV #保存周期
         num_steps_per_env = 24
         resume = False
-        resume_path =  '/home/rot/original_isaacgym/python/examples/logs/rough_go2_constraint/model_4000.pt'
+        resume_path =  '/home/pi/Downloads/back_good/LocomotionWithNP3O-masteroldxgoo2/LocomotionWithNP3O-masteroldx/logs/rough_go2_constraint/Dec17_12-41-23_test_barlowtwins/model_20000.pt'
  
 
   

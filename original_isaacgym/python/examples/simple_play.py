@@ -64,6 +64,8 @@ def play(args):
     env_cfg.terrain.num_cols = 3
     env_cfg.terrain.curriculum = False
     env_cfg.noise.add_noise = False
+    # env_cfg.noise.add_noise = True
+    # env_cfg.noise.noise_level = 0.05
     #env_cfg.terrain.mesh_type = 'plane'
     env_cfg.domain_rand.push_robots = True
     #env_cfg.domain_rand.randomize_friction = False
@@ -71,7 +73,7 @@ def play(args):
     env_cfg.domain_rand.randomize_base_mass = False
     env_cfg.domain_rand.randomize_motor = False
     env_cfg.domain_rand.randomize_lag_timesteps = False
-    env_cfg.noise.add_noise = False
+
     env_cfg.domain_rand.randomize_friction = False
     env_cfg.domain_rand.randomize_restitution = False
     env_cfg.control.use_filter = True
@@ -93,8 +95,8 @@ def play(args):
                                                       **policy_cfg_dict)
  
     model_dict = torch.load(os.path.join(ROOT_DIR, \
-    '/home/rot/original_isaacgym/python/examples/logs/rough_go2_constraint/Jul02_15-02-57_test_barlowtwins/model_2000.pt'))#《---------------------调用的网络模型doghome
-    #'/home/rot/model_3000.pt'))
+    '/home/rot/original_isaacgym/python/examples/logs/rough_go2_constraint/Jul14_14-29-32_test_barlowtwins/model_30000.pt'))#《---------------------调用的网络模型doghome
+    
     #if 1:#full 
     policy.load_state_dict(model_dict['model_state_dict'])
     policy.half()
